@@ -6,8 +6,11 @@ import com.xideral.bootTest.controller.employee.request.EmployeeUpdateAndSetAcce
 import com.xideral.bootTest.controller.employee.request.EmployeeUpdateRequest;
 import com.xideral.bootTest.controller.employee.response.EmployeeCreateResponse;
 import com.xideral.bootTest.controller.employee.response.EmployeeUpdateAndSetAccessResponse;
+import com.xideral.bootTest.entities.Employee;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 public interface EmployeeService {
 
@@ -26,4 +29,6 @@ public interface EmployeeService {
 		Integer employeeId,
 		EmployeeUpdateRequest request
 	);
+
+	List<Employee> getAllEmployees();
 }

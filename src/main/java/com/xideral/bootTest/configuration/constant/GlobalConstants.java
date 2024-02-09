@@ -5,6 +5,7 @@ public class GlobalConstants {
 	public static final String EMPLOYEES_ENDPOINT = "/employees";
 
 
+	public static final String USERS_ENDPOINT = "/users";
 
 
 
