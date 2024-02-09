@@ -2,12 +2,16 @@ package com.xideral.bootTest.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "cat_employee", schema = "sch_test")
+@Accessors(chain = true)
+@Table(name = "cat_employee", schema = "sch_test", uniqueConstraints = {
+	@UniqueConstraint(columnNames = {"empName", "empFirstName", "empLastName"})
+})
 public class Employee {
 
 	@Id
