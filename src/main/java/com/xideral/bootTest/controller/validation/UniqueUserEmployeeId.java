@@ -5,13 +5,12 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
-@Target({ElementType.FIELD, ElementType.PARAMETER,ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Constraint(validatedBy = UniqueNameAndFirstNameAndLastNameValidator.class)
-public @interface UniqueNameAndFirstNameAndLastName {
-
-	String message() default "Validation error";
+@Constraint(validatedBy = UniqueUserEmployeeIdValidator.class)
+public @interface UniqueUserEmployeeId {
+	String message() default "";
 
 	Class<?>[] groups() default {};
 

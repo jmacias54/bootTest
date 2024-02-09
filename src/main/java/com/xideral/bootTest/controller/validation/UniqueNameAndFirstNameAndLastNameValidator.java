@@ -30,6 +30,6 @@ public class UniqueNameAndFirstNameAndLastNameValidator implements ConstraintVal
 			request.getLastName()
 		);
 
-		return employeeOptional.isPresent();
+		return employeeOptional.isEmpty();
 	}
 }
