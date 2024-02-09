@@ -1,5 +1,6 @@
 package com.xideral.bootTest.configuration.handler;
 
+
 import com.xideral.bootTest.configuration.handler.response.ResponseError;
 import com.xideral.bootTest.configuration.handler.response.Error;
 import com.xideral.bootTest.exception.BadRequestException;
@@ -16,23 +17,20 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.*;
 import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,28 +56,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	private static final String MEDIA_TYPE_NOT_SUPPORTED = "MediaTypeNotSupported";
 	private static final String ENTITY_NOT_FOUND = "EntityNotFound";
 
-
-
-
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	@ResponseBody
-	public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-		logger.error("handleMethodArgumentNotValid Occurred:: URL ");
-		logger.error("Error detail:: ", ex);
-
-		final List<String> errors = new ArrayList<>();
-		for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
-			errors.add(error.getDefaultMessage());
-		}
-		for (final ObjectError error : ex.getBindingResult().getGlobalErrors()) {
-			errors.add(error.getDefaultMessage());
-		}
-
-		ResponseError body = createResponseError("BAD_REQUEST", errors);
-
-		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-	}
 	@ExceptionHandler({EntityNotFoundException.class})
 	public ResponseEntity<ResponseError> entityNotFoundException(final Exception ex, final HttpServletRequest request) {
 		logger.error("EntityNotFoundException Occured:: URL " + request.getRequestURI() + getParameters(request));
@@ -122,7 +98,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(responseError, HttpStatus.NOT_FOUND);
 	}
 
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(
+		MethodArgumentNotValidException ex,
+		HttpHeaders headers, HttpStatus status, WebRequest request
+	) {
 
+		logger.error("handleMethodArgumentNotValid Occured:: URL ");
+		logger.error("Error detail:: ", ex);
+
+		imprimeError(ex);
+		final List<String> errors = new ArrayList<>();
+		for(final FieldError error : ex.getBindingResult().getFieldErrors()) {
+			errors.add(error.getDefaultMessage());
+		}
+		for(final ObjectError error : ex.getBindingResult().getGlobalErrors()) {
+			errors.add(error.getDefaultMessage());
+		}
+
+		ResponseError body = createResponseError(ARGS_NOT_VALID, errors);
+
+		return handleExceptionInternal(ex, body, headers, HttpStatus.BAD_REQUEST, request);
+	}
 
 	protected ResponseEntity<Object> handleBindException(
 		BindException ex, HttpHeaders headers, HttpStatus status,

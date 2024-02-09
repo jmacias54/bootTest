@@ -2,20 +2,25 @@ package com.xideral.bootTest.service.impl;
 
 import com.xideral.bootTest.contract.Mapper;
 import com.xideral.bootTest.controller.employee.request.EmployeeCreateRequest;
+import com.xideral.bootTest.controller.employee.request.EmployeeRegisterLikeUserRequest;
 import com.xideral.bootTest.controller.employee.request.EmployeeUpdateAndSetAccessRequest;
+import com.xideral.bootTest.controller.employee.request.EmployeeUpdateRequest;
+import com.xideral.bootTest.controller.employee.response.EmployeeCreateResponse;
 import com.xideral.bootTest.controller.employee.response.EmployeeUpdateAndSetAccessResponse;
 import com.xideral.bootTest.entities.Employee;
 import com.xideral.bootTest.exception.BadRequestException;
+import com.xideral.bootTest.exception.ItemNotFoundException;
 import com.xideral.bootTest.repository.EmployeeRepository;
 import com.xideral.bootTest.service.EmployeeService;
 import com.xideral.bootTest.service.UserService;
 import com.xideral.bootTest.service.mapper.EmployeeUpdater;
-import com.xideral.bootTest.service.validation.EmployeeIsUnique;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static java.util.Objects.isNull;
 
 @Service
 @RequiredArgsConstructor
@@ -23,18 +28,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	private final EmployeeRepository employeeRepository;
 	private final UserService userService;
-	private final EmployeeIsUnique employeeIsUnique;
 	private final EmployeeUpdater employeeUpdater;
 	private final Mapper<EmployeeCreateRequest, Employee> employeeCreateRequestToEmployeeMapper;
 
 	@Override
 	public Integer create(EmployeeCreateRequest request) {
-		this.employeeIsUnique.isUnique(
-			request.getName(),
-			request.getFirstName(),
-			request.getLastName()
-		);
-
 		Employee employee = this.employeeRepository.save(
 			this.employeeCreateRequestToEmployeeMapper.map(request)
 		);
@@ -48,26 +46,59 @@ public class EmployeeServiceImpl implements EmployeeService {
 		EmployeeUpdateAndSetAccessRequest request
 	) {
 
-		this.employeeIsUnique.isUnique(
-			request.getEmployee().getName(),
-			request.getEmployee().getFirstName(),
-			request.getEmployee().getLastName()
-		);
 
+		Optional<Employee> employee = this.updateEmployee(employeeId, request.getEmployee());
+		Integer userId = this.userService.create(employeeId, request.getUser());
+
+		return new EmployeeUpdateAndSetAccessResponse(userId, employeeId, Boolean.TRUE);
+	}
+
+	private Optional<Employee> updateEmployee(
+		Integer employeeId,
+		EmployeeUpdateRequest employeeUpdateRequest
+	) {
 		Optional<Employee> employee = this.employeeRepository.findById(employeeId);
 
 		if(employee.isEmpty())
 			throw new BadRequestException("Employee not exist.");
 
-		employee = Optional.of(this.employeeRepository.save(
+		return Optional.of(this.employeeRepository.save(
 			this.employeeUpdater.updater(
 				employeeId, employee.get(),
-				request.getEmployee()
+				employeeUpdateRequest
 			)
 		));
+	}
 
-		Integer userId = this.userService.create(employeeId,request.getUser());
+	@Override
+	@Transactional
+	public EmployeeUpdateAndSetAccessResponse addLikeUser(EmployeeRegisterLikeUserRequest request) {
+		Integer employeeId = this.create(request.getEmployee());
 
-		return new EmployeeUpdateAndSetAccessResponse(userId,employeeId,Boolean.TRUE);
+		if(isNull(employeeId))
+			throw new ItemNotFoundException("Error insert employee.");
+
+		Integer userId = this.userService.create(employeeId, request.getUser());
+
+		if(isNull(userId))
+			throw new ItemNotFoundException("Error insert user.");
+
+		return new EmployeeUpdateAndSetAccessResponse(userId, employeeId, Boolean.TRUE);
+
+	}
+
+
+	@Override
+	@Transactional
+	public EmployeeCreateResponse updateAndRemoveAccess(
+		Integer employeeId,
+		EmployeeUpdateRequest request
+	) {
+		Optional<Employee> employee = this.updateEmployee(employeeId, request);
+
+		this.userService.deleteByEmployeeId(employee.get().getEmployeeId());
+
+		return new EmployeeCreateResponse(employeeId, Boolean.TRUE);
+
 	}
 }

@@ -2,6 +2,7 @@ package com.xideral.bootTest.controller.employee;
 
 import com.xideral.bootTest.configuration.constant.GlobalConstants;
 import com.xideral.bootTest.controller.employee.request.EmployeeCreateRequest;
+import com.xideral.bootTest.controller.employee.request.EmployeeRegisterLikeUserRequest;
 import com.xideral.bootTest.controller.employee.request.EmployeeUpdateAndSetAccessRequest;
 import com.xideral.bootTest.controller.employee.response.EmployeeCreateResponse;
 import com.xideral.bootTest.controller.employee.response.EmployeeUpdateAndSetAccessResponse;
@@ -34,6 +35,13 @@ public class EmployeeController {
 		@RequestBody @Valid EmployeeUpdateAndSetAccessRequest request
 	) {
 		return ResponseEntity.ok(this.employeeService.updateAndSetAccess(employeeId, request));
+	}
+
+	@PutMapping(path = "/addLikeUser", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<EmployeeUpdateAndSetAccessResponse> addLikeUser(
+		@RequestBody @Valid EmployeeRegisterLikeUserRequest request
+	) {
+		return ResponseEntity.ok(this.employeeService.addLikeUser(request));
 	}
 
 }

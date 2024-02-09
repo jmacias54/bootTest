@@ -9,10 +9,13 @@ public class EmployeeUpdater {
 
 	public Employee updater(Integer id, Employee employee, EmployeeUpdateRequest request) {
 
-		return employee
-			.setEmployeeId(id)
-			.setEmployeeName(request.getFirstName())
-			.setEmployeeLastName(request.getLastName())
-			.setEmployeeBirthDate(request.getBirthDate());
+		request.getName().ifPresent(employee::setEmployeeName);
+		request.getFirstName().ifPresent(employee::setEmployeeFirstName);
+		request.getLastName().ifPresent(employee::setEmployeeLastName);
+		request.getBirthDate().ifPresent(employee::setEmployeeBirthDate);
+
+		return employee;
 	}
+
+
 }
